@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Softstage: sensory-friendly open mic finder (fictional demo)</title>
+<meta name="description" content="A fictional student demo for finding open mic sessions that fit your sensory needs. All sessions are invented Sample Data.">
+<style>
+/* ================= Design tokens ================= */
+:root {
+  --ink: #2e1347;
+  --ink-soft: #4b3563;
+  --purple: #6b2d91;
+  --purple-dark: #4a1d6e;
+  --bg: #fff6fb;
+  --pink: #f9d3e6;
+  --lav: #efe6f8;
+  --line: #d9c4ea;
+  --white: #ffffff;
+  --gold: #d4a017;
+  --gold-soft: #f0cf63;
+  --green-bg: #dcf4e2; --green-ink: #0e4a1f; --green-bd: #2f8a4a;
+  --amber-bg: #fff0c2; --amber-ink: #5c3b00; --amber-bd: #b97a00;
+  --red-bg: #ffdad5;   --red-ink: #7a140c;   --red-bd: #c0392b;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 1.125rem;          /* 18px */
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  word-spacing: 0.06em;
+  color: var(--ink);
+  background: var(--bg);
+  text-align: left;
+}
+
+em, i, cite, address, dfn, var { font-style: normal; }
+p { margin: 0 0 1.25em; max-width: 62ch; }
+h1, h2, h3, h4 { line-height: 1.3; margin: 0 0 0.6em; font-weight: 700; text-transform: none; }
+h1 { font-size: 2.25rem; margin-bottom: 0.2em; }
+h2 { font-size: 1.6rem; }
+h3 { font-size: 1.3rem; }
+h4 { font-size: 1.1rem; margin-bottom: 0.4em; }
+a { color: var(--purple-dark); }
+
+/* ================= Focus, skip link ================= */
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.skip-link {
+  position: absolute; left: 8px; top: -100px; z-index: 100;
+  background: var(--purple-dark); color: #fff; padding: 12px 18px; border-radius: 10px;
+}
+.skip-link:focus { top: 8px; }
+
+/* ================= Calm decorative sparkle ================= */
+.sparkle-edge {
+  position: fixed; top: 0; bottom: 0; width: 22px; z-index: 0; pointer-events: none;
+  background-image: var(--sparkle-tile);
+  background-repeat: repeat-y;
+  background-size: 22px 120px;
+  animation: edgeFade 10s ease-in-out infinite alternate;
+}
+.sparkle-edge.left  { left: 0; }
+.sparkle-edge.right { right: 0; }
+@keyframes edgeFade { from { opacity: 0.6; } to { opacity: 0.95; } }
+
+.sparkle-heading::before,
+.sparkle-heading::after {
+  content: ""; display: inline-block; width: 0.8em; height: 0.8em;
+  background: var(--star-icon) center / contain no-repeat;
+  vertical-align: -0.05em;
+}
+.sparkle-heading::before { margin-right: 0.4em; }
+.sparkle-heading::after  { margin-left: 0.4em; }
+
+/* ================= Page layout ================= */
+.page { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padding: 0 30px 56px; }
+
+.banner {
+  margin: 20px 0 28px; padding: 16px 20px;
+  background: var(--lav); border: 2px solid var(--purple); border-radius: 14px;
+}
+.banner p { margin: 0; max-width: none; }
+
+.site-header { margin-bottom: 24px; }
+.tagline { font-size: 1.35rem; font-weight: 600; color: var(--purple-dark); margin: 0 0 0.3em; }
+.mission { font-size: 1.15rem; margin: 0 0 0.3em; }
+.sub { font-size: 1rem; color: var(--ink-soft); margin: 0; }
+
+.top-controls { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin: 0 0 28px; }
+
+.view-toggle { display: inline-flex; }
+.view-toggle button {
+  min-height: 52px; min-width: 130px; padding: 0 22px;
+  font: inherit; font-weight: 700; letter-spacing: inherit;
+  background: #fff; color: var(--purple-dark);
+  border: 2px solid var(--purple); cursor: pointer;
+}
+.view-toggle button:first-child { border-radius: 14px 0 0 14px; }
+.view-toggle button:last-child  { border-radius: 0 14px 14px 0; border-left: 0; }
+.view-toggle button[aria-pressed="true"] { background: var(--purple); color: #fff; }
+
+.btn {
+  min-height: 48px; padding: 8px 22px; font: inherit; font-weight: 700; letter-spacing: inherit;
+  border-radius: 12px; border: 2px solid var(--purple); background: var(--purple); color: #fff; cursor: pointer;
+}
+.btn:hover { background: var(--purple-dark); border-color: var(--purple-dark); }
+.btn-secondary { background: #fff; color: var(--purple-dark); }
+.btn-secondary:hover { background: var(--lav); color: var(--purple-dark); border-color: var(--purple); }
+
+.panel {
+  background: #fff; border: 2px solid var(--line); border-radius: 16px;
+  padding: 20px 22px; margin: 0 0 24px;
+}
+.panel > :last-child { margin-bottom: 0; }
+
+/* ================= Form controls ================= */
+fieldset { border: 0; padding: 0; margin: 0 0 22px; min-width: 0; }
+legend { font-weight: 700; padding: 0; margin-bottom: 6px; }
+.hint { margin: 0 0 10px; font-size: 1rem; color: var(--ink-soft); }
+.choices { display: flex; flex-wrap: wrap; gap: 10px; }
+.choice {
+  display: flex; align-items: center; gap: 10px; min-height: 48px;
+  padding: 8px 14px; background: #fff; border: 2px solid var(--line); border-radius: 12px; cursor: pointer;
+}
+.choice input { width: 24px; height: 24px; margin: 0; accent-color: var(--purple); flex: 0 0 24px; }
+.choice:has(input:checked) { background: var(--lav); border-color: var(--purple); }
+.choice:focus-within { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+.field { margin: 0 0 22px; }
+.lbl { display: block; font-weight: 700; margin-bottom: 6px; }
+input[type="text"], input[type="date"], input[type="time"] {
+  width: 100%; max-width: 28rem; min-height: 48px; padding: 8px 12px;
+  font: inherit; letter-spacing: inherit; color: var(--ink); background: #fff;
+  border: 2px solid var(--purple); border-radius: 10px;
+}
+
+.note-box { padding: 12px 16px; background: var(--lav); border: 2px solid var(--line); border-radius: 12px; max-width: none; }
+.errors {
+  border: 2px solid var(--red-bd); background: var(--red-bg); color: var(--red-ink);
+  border-radius: 12px; padding: 12px 18px; margin: 0 0 22px;
+}
+.errors p { margin: 0 0 0.4em; font-weight: 700; }
+.errors ul { margin: 0; padding-left: 1.3em; }
+
+/* ================= Keys ================= */
+.keys { display: grid; gap: 22px; grid-template-columns: 1fr; }
+.keys h3, .keys h4 { font-size: 1.1rem; margin-bottom: 0.4em; }
+.key-list { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 12px; }
+.key-list li { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+
+/* ================= Pills, bulbs, badges ================= */
+.pill {
+  display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px;
+  border-radius: 999px; border: 2px solid; font-weight: 700; font-size: 1rem; line-height: 1.5;
+}
+.pill .dot { width: 12px; height: 12px; border-radius: 50%; background: currentColor; flex: 0 0 12px; }
+.pill-green { background: var(--green-bg); color: var(--green-ink); border-color: var(--green-bd); }
+.pill-amber { background: var(--amber-bg); color: var(--amber-ink); border-color: var(--amber-bd); }
+.pill-red   { background: var(--red-bg);   color: var(--red-ink);   border-color: var(--red-bd); }
+
+.bulbs { display: inline-flex; gap: 4px; vertical-align: middle; }
+.bulbs svg { display: block; }
+
+.badge {
+  display: flex; align-items: center; gap: 10px; margin: 0; max-width: none;
+  padding: 8px 14px; border-radius: 12px; border: 2px solid; font-weight: 700; font-size: 1rem; line-height: 1.5;
+}
+.badge svg { flex: 0 0 24px; width: 24px; height: 24px; }
+.badge-amber { background: var(--amber-bg); color: var(--amber-ink); border-color: var(--amber-bd); }
+.badge-red   { background: var(--red-bg);   color: var(--red-ink);   border-color: var(--red-bd); }
+
+/* ================= Demo date ================= */
+.demo-row { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end; margin-bottom: 12px; }
+.demo-row .field { margin: 0; }
+#demo-readout { font-size: 1rem; margin: 0 0 0.6em; }
+.demo-help { margin: 0; font-weight: 600; }
+
+/* ================= Cards ================= */
+.results-status { margin: 0 0 0.4em; font-weight: 600; }
+.cards { display: grid; grid-template-columns: 1fr; gap: 22px; }
+.card {
+  background: #fff; border: 2px solid var(--line); border-radius: 16px; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.card-img { position: relative; height: 130px; }
+.card-img.v1 { background: linear-gradient(135deg, #fbd3e6, #e6d4f5); }
+.card-img.v2 { background: linear-gradient(135deg, #e6d4f5, #fde0ee); }
+.card-img.v3 { background: linear-gradient(135deg, #fde0ee, #d9c9f2); }
+.sample-tag {
+  position: absolute; top: 10px; left: 10px; background: #fff; color: var(--ink);
+  border: 2px solid var(--gold); border-radius: 999px; padding: 0 12px;
+  font-size: 1rem; font-weight: 600; line-height: 1.6;
+}
+.card-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.card-body h3 { margin: 0; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; }
+.facts dt { font-weight: 700; }
+.facts dd { margin: 0; }
+.ratings { margin-top: auto; border-top: 2px dashed var(--line); padding-top: 12px; display: grid; gap: 10px; }
+.rating { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.rating-title { font-weight: 700; min-width: 5.5rem; }
+.light-label { font-size: 1rem; }
+.missing {
+  display: inline-block; padding: 2px 12px; font-size: 1rem;
+  border: 2px dashed #6f5a85; border-radius: 10px; background: #f6f0fa;
+}
+
+/* Past events (greyed out) and the Missing details key */
+.cards-subhead { grid-column: 1 / -1; margin: 8px 0 0; }
+.card.past { background: #f1eef3; border-color: #bfb6c9; }
+.card.past .card-img,
+.card.past .ratings .pill,
+.card.past .ratings .bulbs { filter: grayscale(1); }
+.card.past .card-body h3 { color: #4b3563; }
+.badge-past { background: #e6e2ea; color: #2e1347; border-color: #6f5a85; }
+.key-wide { grid-column: 1 / -1; }
+.key-none {
+  display: inline-block; padding: 2px 12px; font-size: 1rem; font-weight: 700;
+  border: 2px dashed #6f5a85; border-radius: 10px; background: #f6f0fa;
+}
+.show-past { margin: 16px 0 0; }
+.show-past .choice { display: inline-flex; }
+.show-past .hint { margin: 8px 0 0; }
+
+.empty { text-align: left; }
+.empty p { margin-bottom: 0.8em; }
+
+/* ================= Thank you ================= */
+.thanks {
+  position: relative; overflow: hidden; margin: 0 0 24px; padding: 20px 22px;
+  background: #fff; border: 3px solid var(--gold); border-radius: 16px;
+}
+.thanks > :last-child { margin-bottom: 0; }
+.thanks-emoji { font-size: 1.6rem; margin: 0 0 0.3em; line-height: 1.4; }
+.thanks.shimmer::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(240, 207, 99, 0.35) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: shimmer 2s ease-in-out 1 forwards;
+}
+@keyframes shimmer { to { transform: translateX(100%); } }
+
+/* ================= Footer ================= */
+.site-footer { border-top: 2px solid var(--line); padding-top: 22px; margin-top: 36px; }
+.site-footer .closing { font-weight: 600; color: var(--purple-dark); }
+#reset-msg { margin-top: 12px; font-weight: 600; }
+
+/* ================= Wider screens ================= */
+@media (min-width: 760px) {
+  .cards { grid-template-columns: 1fr 1fr; }
+  .keys { grid-template-columns: 1fr 1fr; }
+}
+
+/* ================= Calm mode and reduced motion ================= */
+body.calm .sparkle-edge,
+body.calm .deco { display: none !important; }
+body.calm .sparkle-heading::before,
+body.calm .sparkle-heading::after { display: none; }
+body.calm *, body.calm *::before, body.calm *::after { animation: none !important; transition: none !important; }
+body.calm .thanks::after { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .thanks::after { display: none; }
+}
+/* ===== Pink option override ===== */
+.btn { background: #f8b4d4; color: #2e1347; border-color: #6b2d91; }
+.btn:hover { background: #f29bc4; color: #2e1347; border-color: #4a1d6e; }
+.btn-secondary { background: #ffffff; color: #4a1d6e; }
+.btn-secondary:hover { background: #ffe0ef; color: #4a1d6e; border-color: #6b2d91; }
+.view-toggle button[aria-pressed="true"] { background: #f8b4d4; color: #2e1347; box-shadow: inset 0 -6px 0 #6b2d91; }
+.view-toggle button[aria-pressed="true"]::before { content: "\2713\00a0"; }
+.choice input { accent-color: #c2185b; }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<div class="sparkle-edge left" aria-hidden="true"></div>
+<div class="sparkle-edge right" aria-hidden="true"></div>
+
+<div class="page">
+  <div class="banner" role="note">
+    <p><strong>This is a fictional student project.</strong> All sessions, venues and details are invented Sample Data. No real data is collected.</p>
+  </div>
+
+  <header class="site-header">
+    <h1 class="sparkle-heading">Softstage</h1>
+    <p class="tagline">A dimmer switch for the world</p>
+    <p class="mission">Helping neurodivergent performers find open mics that fit their senses.</p>
+    <p class="sub">Sensory-friendly open mic finder: demo</p>
+  </header>
+
+  <div class="top-controls">
+    <div class="view-toggle" role="group" aria-label="Choose a view">
+      <button type="button" id="btn-performer" aria-pressed="true">Performer</button>
+      <button type="button" id="btn-venue" aria-pressed="false">Venue</button>
+    </div>
+    <button type="button" id="calm-toggle" class="btn btn-secondary" aria-pressed="false">Calm mode: Off</button>
+  </div>
+
+  <main id="main" tabindex="-1">
+    <noscript><p class="note-box">This demo needs JavaScript. Please turn it on to see the sessions.</p></noscript>
+
+    <section class="panel" aria-labelledby="demo-date-heading">
+      <h2 id="demo-date-heading">Demo date</h2>
+      <p id="demo-readout"></p>
+      <div class="demo-row">
+        <div class="field">
+          <label class="lbl" for="demo-date">Demo date (a demo control, not a real booking)</label>
+          <input type="date" id="demo-date" aria-describedby="demo-help">
+        </div>
+        <button type="button" id="demo-today" class="btn btn-secondary">Back to today</button>
+      </div>
+      <p class="demo-help" id="demo-help">Travel forward in time: see what happens when a session's details are still missing.</p>
+      <div class="show-past">
+        <label class="choice"><input type="checkbox" id="show-past" aria-describedby="show-past-hint"><span>Show past events</span></label>
+        <p class="hint" id="show-past-hint">Past events appear greyed out at the end of the list in Performer view, with no warnings.</p>
+      </div>
+    </section>
+
+    <!-- ================= PERFORMER VIEW ================= -->
+    <section id="view-performer" aria-labelledby="performer-heading">
+      <section class="panel" aria-labelledby="key-heading-p">
+        <h2 id="key-heading-p">How to read the ratings</h2>
+        <div id="key-performer"></div>
+      </section>
+
+      <h2 id="performer-heading" class="sparkle-heading">Find a session</h2>
+
+      <form id="filters" class="panel" aria-label="Filters" onsubmit="return false">
+        <fieldset aria-describedby="hint-type">
+          <legend>Performance type</legend>
+          <p class="hint" id="hint-type">Tick all that apply. Leave all unticked to see every type.</p>
+          <div class="choices">
+            <label class="choice"><input type="checkbox" name="type" value="Singing"><span>Singing</span></label>
+            <label class="choice"><input type="checkbox" name="type" value="Dance"><span>Dance</span></label>
+            <label class="choice"><input type="checkbox" name="type" value="Spoken word"><span>Spoken word</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Noise: the loudest I can manage</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="noise" value="1"><span>Low only (green)</span></label>
+            <label class="choice"><input type="radio" name="noise" value="2"><span>Up to moderate (green and amber)</span></label>
+            <label class="choice"><input type="radio" name="noise" value="3" checked><span>Any noise level</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Lighting: the brightest I can manage</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="light" value="1"><span>1 bulb only (low light)</span></label>
+            <label class="choice"><input type="radio" name="light" value="2"><span>Up to 2 bulbs (low and moderate light)</span></label>
+            <label class="choice"><input type="radio" name="light" value="3" checked><span>Any lighting</span></label>
+          </div>
+        </fieldset>
+
+        <button type="button" id="clear-filters" class="btn btn-secondary">Clear filters</button>
+      </form>
+
+      <h3>Upcoming sessions</h3>
+      <p id="result-count" class="results-status" role="status" aria-live="polite"></p>
+      <p id="filter-note" class="hint" hidden></p>
+      <div id="cards" class="cards"></div>
+      <div id="empty" class="panel empty" hidden>
+        <p id="empty-text"></p>
+        <button type="button" id="empty-clear" class="btn btn-secondary">Clear filters</button>
+      </div>
+    </section>
+
+    <!-- ================= VENUE VIEW ================= -->
+    <section id="view-venue" aria-labelledby="venue-heading" hidden>
+      <h2 id="venue-heading" class="sparkle-heading">Venue: add a session</h2>
+
+      <section class="panel" aria-labelledby="key-heading-v">
+        <h3 id="key-heading-v">How to rate your session</h3>
+        <p>Please rate the loudest and brightest moments of the session, so performers can plan. Everyone uses the same keys, so ratings mean the same thing everywhere.</p>
+        <div id="key-venue"></div>
+      </section>
+
+      <div id="thanks" class="thanks" role="status" tabindex="-1" hidden>
+        <p class="thanks-emoji deco" aria-hidden="true">✨ 🙌 ✨</p>
+        <h3>Ta-da! Thank you!</h3>
+        <p>Your made-up session has been added. It is already in the Performer view.</p>
+        <button type="button" id="thanks-view" class="btn">See it in Performer view</button>
+      </div>
+
+      <form id="venue-form" class="panel" novalidate autocomplete="off">
+        <h3>Add a session</h3>
+        <p class="note-box"><strong>Use made-up details only.</strong> Nothing you type here is sent anywhere.</p>
+        <div id="form-errors" class="errors" role="alert" tabindex="-1" hidden></div>
+
+        <div class="field">
+          <label class="lbl" for="v-name">Session name</label>
+          <input type="text" id="v-name" maxlength="60" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="lbl" for="v-date">Date</label>
+          <input type="date" id="v-date" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="lbl" for="v-time">Time</label>
+          <input type="time" id="v-time" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="lbl" for="v-location">Location (a made-up venue name)</label>
+          <input type="text" id="v-location" maxlength="80" autocomplete="off">
+        </div>
+
+        <fieldset>
+          <legend>Performance types accepted</legend>
+          <p class="hint">Tick all that apply.</p>
+          <div class="choices">
+            <label class="choice"><input type="checkbox" name="v-type" value="Singing"><span>Singing</span></label>
+            <label class="choice"><input type="checkbox" name="v-type" value="Dance"><span>Dance</span></label>
+            <label class="choice"><input type="checkbox" name="v-type" value="Spoken word"><span>Spoken word</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset aria-describedby="hint-vnoise">
+          <legend>Noise rating (optional)</legend>
+          <p class="hint" id="hint-vnoise">Leave it as Not yet known to see the missing-details warning at work.</p>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="v-noise" value="" checked><span>Not yet known</span></label>
+            <label class="choice"><input type="radio" name="v-noise" value="low"><span>Low noise (green)</span></label>
+            <label class="choice"><input type="radio" name="v-noise" value="moderate"><span>Moderate noise (amber)</span></label>
+            <label class="choice"><input type="radio" name="v-noise" value="high"><span>Lots of noise (red)</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Lighting rating (optional)</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="v-light" value="" checked><span>Not yet known</span></label>
+            <label class="choice"><input type="radio" name="v-light" value="1"><span>1 bulb: low light</span></label>
+            <label class="choice"><input type="radio" name="v-light" value="2"><span>2 bulbs: moderate light</span></label>
+            <label class="choice"><input type="radio" name="v-light" value="3"><span>3 bulbs: very bright, or flashing or changing light</span></label>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="btn">Add session</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Softstage is a fictional company made up for a student project. Every session, venue and detail on this page is invented Sample Data, and nothing you enter is sent anywhere.</p>
+    <p class="closing">Softstage: a dimmer switch for the world</p>
+    <button type="button" id="reset-sample" class="btn btn-secondary">Reset Sample Data</button>
+    <p id="reset-msg" role="status" aria-live="polite"></p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Constants ---------- */
+  var STORAGE_KEY = 'softstageDemo.sessions.v1';
+  var CALM_KEY = 'softstageDemo.calm.v1';
+  var TYPES = ['Singing', 'Dance', 'Spoken word'];
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var WEEKDAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var STAR = 'M10 0Q10.9 9.1 20 10Q10.9 10.9 10 20Q9.1 10.9 0 10Q9.1 9.1 10 0Z';
+
+  var NOISE = {
+    low:      { label: 'Low noise',      cls: 'green', rank: 1, help: 'Quiet room. Easy to talk.' },
+    moderate: { label: 'Moderate noise', cls: 'amber', rank: 2, help: 'Some music or chatter.' },
+    high:     { label: 'Lots of noise',  cls: 'red',   rank: 3, help: 'Loud music or a busy crowd.' }
+  };
+  var LIGHT = {
+    1: { label: 'Low light',      help: 'Soft, steady lighting.' },
+    2: { label: 'Moderate light', help: 'Brighter, but steady lighting.' },
+    3: { label: 'Very bright or changing light', help: 'Very bright, or flashing or changing light. For example, disco lights.' }
+  };
+
+  /* ---------- Sample data (all invented) ---------- */
+  var SAMPLE = [
+    { id: 's1', name: 'Quiet Corner Open Mic',     date: '2026-11-03', time: '19:00', location: 'The Birch Room, Dublin 8',            types: ['Singing', 'Spoken word'],          noise: 'low',      light: 1 },
+    { id: 's2', name: 'Spooky Stories Night',      date: '2026-10-31', time: '18:30', location: 'Lantern Arts Hall, Dublin 7',         types: ['Spoken word'],                     noise: 'moderate', light: 2 },
+    { id: 's3', name: 'Move Your Way Dance Jam',   date: '2026-11-11', time: '18:00', location: 'Cobalt Studio, Dublin 1',             types: ['Dance'],                           noise: null,       light: null },
+    { id: 's4', name: 'Soft Voices Singing Circle',date: '2026-11-19', time: '19:30', location: 'The Willow Loft, Dublin 6',           types: ['Singing'],                         noise: 'low',      light: 1 },
+    { id: 's5', name: 'Open Stage Social',         date: '2026-11-27', time: '20:00', location: 'Saltmarsh Hall, Dublin 3',            types: ['Singing', 'Dance', 'Spoken word'], noise: 'high',     light: 3 },
+    { id: 's6', name: 'Little Lights Showcase',    date: '2026-12-06', time: '17:00', location: 'Fernbrook Community Centre, Dublin 12', types: ['Dance', 'Singing'],              noise: null,       light: null },
+    { id: 's7', name: 'Winter Words Evening',      date: '2026-12-16', time: '19:00', location: 'The Old Mill Room, Dublin 2',         types: ['Spoken word'],                     noise: 'low',      light: 2 },
+    { id: 's8', name: 'Festive Open Mic',          date: '2026-12-22', time: '19:00', location: 'Maple Street Arts Space, Dublin 4',   types: ['Singing', 'Spoken word'],          noise: null,       light: null }
+  ];
+
+  /* ---------- Small helpers ---------- */
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) { e.className = cls; }
+    if (text !== undefined) { e.textContent = text; }
+    return e;
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function clone(list) { return JSON.parse(JSON.stringify(list)); }
+
+  /* ---------- Date rules (all calculated from dates, never hard-coded) ---------- */
+  function parseISO(s) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ''));
+    if (!m) { return null; }
+    var t = Date.UTC(+m[1], +m[2] - 1, +m[3]);
+    var d = new Date(t);
+    if (d.getUTCFullYear() !== +m[1] || d.getUTCMonth() !== +m[2] - 1 || d.getUTCDate() !== +m[3]) { return null; }
+    return t;
+  }
+  function daysBetween(fromISO, toISO) {
+    return Math.round((parseISO(toISO) - parseISO(fromISO)) / 86400000);
+  }
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function formatDate(iso) {
+    var d = new Date(parseISO(iso));
+    return WEEKDAYS[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+  }
+  function isIncomplete(s) { return !s.noise || !s.light; }
+
+  /* 6+ days away: no warning. 3 to 5 days: amber. 2 days or fewer: red. */
+  function warningFor(s, demoISO) {
+    if (!isIncomplete(s)) { return null; }
+    var days = daysBetween(demoISO, s.date);
+    if (days < 0) { return null; }
+    if (days <= 2) { return { level: 'red', days: days }; }
+    if (days <= 5) { return { level: 'amber', days: days }; }
+    return null;
+  }
+  function dayText(n) {
+    if (n === 0) { return 'today'; }
+    return 'in ' + n + (n === 1 ? ' day' : ' days');
+  }
+  function plural(n, word) { return n + ' ' + word + (n === 1 ? '' : 's'); }
+
+  /* ---------- State and storage ---------- */
+  var state = { sessions: [], demoDate: todayISO(), showPast: false };
+
+  function sanitize(list) {
+    if (!Array.isArray(list)) { return null; }
+    var out = [];
+    list.forEach(function (s) {
+      if (!s || typeof s !== 'object') { return; }
+      var name = String(s.name || '').slice(0, 60).trim();
+      var loc = String(s.location || '').slice(0, 80).trim();
+      var types = (Array.isArray(s.types) ? s.types : []).filter(function (t) { return TYPES.indexOf(t) > -1; });
+      if (!name || !loc || parseISO(s.date) === null || !/^\d{2}:\d{2}$/.test(String(s.time)) || !types.length) { return; }
+      var id = String(s.id || ('x' + out.length)).replace(/[^a-zA-Z0-9_-]/g, '') || ('x' + out.length);
+      out.push({
+        id: id, name: name, date: s.date, time: s.time, location: loc, types: types,
+        noise: NOISE[s.noise] ? s.noise : null,
+        light: (s.light === 1 || s.light === 2 || s.light === 3) ? s.light : null
+      });
+    });
+    return out.length ? out : null;
+  }
+  function loadSessions() {
+    try {
+      var raw = window.localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var ok = sanitize(JSON.parse(raw));
+        if (ok) { return ok; }
+      }
+    } catch (e) { /* storage unavailable: fall back to sample data */ }
+    return clone(SAMPLE);
+  }
+  function saveSessions() {
+    try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.sessions)); } catch (e) { /* ignore */ }
+  }
+
+  /* ---------- Drawing: bulbs, icons, illustrations ---------- */
+  function bulbSVG(lit) {
+    var body = 'M12 2a8 8 0 0 0-4.6 14.5c.9.7 1.4 1.6 1.4 2.5V21h6.4v-2c0-.9.5-1.8 1.4-2.5A8 8 0 0 0 12 2z';
+    var s = '<svg viewBox="0 0 24 32" width="26" height="34" focusable="false" aria-hidden="true">';
+    if (lit) {
+      s += '<path d="' + body + '" fill="#f5cf4a" stroke="#6b4a00" stroke-width="1.6" stroke-linejoin="round"/>';
+      s += '<rect x="9" y="23" width="6" height="3.5" rx="1" fill="#6b4a00"/>';
+    } else {
+      s += '<path d="' + body + '" fill="#ffffff" stroke="#6f5a85" stroke-width="1.6" stroke-linejoin="round" stroke-dasharray="3 2"/>';
+      s += '<rect x="9" y="23" width="6" height="3.5" rx="1" fill="#6f5a85"/>';
+    }
+    return s + '</svg>';
+  }
+  function bulbsHTML(n) {
+    return '<span class="bulbs" aria-hidden="true">' + bulbSVG(n >= 1) + bulbSVG(n >= 2) + bulbSVG(n >= 3) + '</span>';
+  }
+  function pillHTML(key) {
+    var n = NOISE[key];
+    return '<span class="pill pill-' + n.cls + '"><span class="dot" aria-hidden="true"></span>' + n.label + '</span>';
+  }
+
+  var COL = '#4a1d6e';
+  var ICONS = {
+    'Singing': '<ellipse cx="14" cy="36" rx="7.5" ry="5.5" fill="' + COL + '"/><path d="M20.5 36V9l17 4v6l-14-3.2V36z" fill="' + COL + '"/>',
+    'Spoken word': '<rect x="17" y="5" width="14" height="25" rx="7" fill="' + COL + '"/><path d="M10 23a14 14 0 0 0 28 0M24 37v7M16 44h16" fill="none" stroke="' + COL + '" stroke-width="3.5" stroke-linecap="round"/>',
+    'Dance': '<circle cx="24" cy="8" r="5" fill="' + COL + '"/><path d="M24 15v14M24 20l-12-6M24 20l14 4M24 29l-9 14M24 29l10 12" fill="none" stroke="' + COL + '" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>'
+  };
+  function illustration(types) {
+    var list = TYPES.filter(function (t) { return types.indexOf(t) > -1; });
+    var step = 108, total = (list.length - 1) * step + 72, x0 = (320 - total) / 2;
+    var out = '<svg viewBox="0 0 320 130" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">';
+    out += '<path class="deco" transform="translate(22 18) scale(.9)" fill="#d4a017" d="' + STAR + '"/>';
+    out += '<path class="deco" transform="translate(284 92) scale(.7)" fill="#d4a017" d="' + STAR + '"/>';
+    out += '<path class="deco" transform="translate(272 14) scale(.5)" fill="#f0cf63" d="' + STAR + '"/>';
+    list.forEach(function (t, i) {
+      out += '<g transform="translate(' + (x0 + i * step) + ' 29) scale(1.5)">' + ICONS[t] + '</g>';
+    });
+    return out + '</svg>';
+  }
+
+  var ICON_AMBER = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3 2 21h20L12 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v5M12 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  var ICON_RED = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v6M12 16.5h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
+  var ICON_PAST = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  /* ---------- Keys (shown in both views) ---------- */
+  function keyHTML(tag) {
+    var h = tag || 'h4';
+    var noise = '<' + h + '>Noise key</' + h + '><ul class="key-list">';
+    ['low', 'moderate', 'high'].forEach(function (k) {
+      noise += '<li>' + pillHTML(k) + '<span>' + { low: 'Green', moderate: 'Amber', high: 'Red' }[k] + '. ' + NOISE[k].help + '</span></li>';
+    });
+    noise += '</ul>';
+    var light = '<' + h + '>Lighting key</' + h + '><ul class="key-list">';
+    [1, 2, 3].forEach(function (n) {
+      light += '<li>' + bulbsHTML(n) + '<span>' + plural(n, 'bulb') + ' lit. ' + LIGHT[n].label + '. ' + LIGHT[n].help + '</span></li>';
+    });
+    light += '</ul><p class="hint">Three bulbs can also mean flashing or changing light, for example disco lights.</p>';
+    var missing = '<' + h + '>Missing details key</' + h + '>' +
+      '<p>If a session has no noise or lighting rating yet, a warning badge appears as its date gets closer.</p>' +
+      '<ul class="key-list">' +
+      '<li><span class="key-none">No badge</span><span>6 or more days away. Nothing shows yet.</span></li>' +
+      '<li><span class="badge badge-amber">' + ICON_AMBER + '<span>Details still missing: session in 4 days</span></span><span>3 to 5 days away. The badge is amber.</span></li>' +
+      '<li><span class="badge badge-red">' + ICON_RED + '<span>Details still missing: session in 1 day</span></span><span>2 days or fewer away. The badge turns red.</span></li>' +
+      '</ul>' +
+      '<p class="hint">To see this happen, move the Demo date at the top of this page closer to a session\'s date. Sessions that have already happened are hidden unless you tick Show past events.</p>';
+    return '<div class="keys"><div>' + noise + '</div><div>' + light + '</div><div class="key-wide">' + missing + '</div></div>';
+  }
+
+  /* ---------- Filters ---------- */
+  function getFilters() {
+    var types = [].slice.call(document.querySelectorAll('#filters input[name="type"]:checked')).map(function (i) { return i.value; });
+    var n = document.querySelector('#filters input[name="noise"]:checked');
+    var l = document.querySelector('#filters input[name="light"]:checked');
+    return { types: types, maxNoise: n ? +n.value : 3, maxLight: l ? +l.value : 3 };
+  }
+  /* returns 'show', 'no' (does not fit) or 'unknown' (cannot tell, details missing) */
+  function evaluate(s, f) {
+    if (f.types.length && !s.types.some(function (t) { return f.types.indexOf(t) > -1; })) { return 'no'; }
+    var unknown = false;
+    if (f.maxNoise < 3) {
+      if (!s.noise) { unknown = true; } else if (NOISE[s.noise].rank > f.maxNoise) { return 'no'; }
+    }
+    if (f.maxLight < 3) {
+      if (!s.light) { unknown = true; } else if (s.light > f.maxLight) { return 'no'; }
+    }
+    return unknown ? 'unknown' : 'show';
+  }
+  function clearFilters() {
+    [].forEach.call(document.querySelectorAll('#filters input[name="type"]'), function (i) { i.checked = false; });
+    document.querySelector('#filters input[name="noise"][value="3"]').checked = true;
+    document.querySelector('#filters input[name="light"][value="3"]').checked = true;
+    render();
+  }
+
+  /* ---------- Cards ---------- */
+  function buildCard(s, idx) {
+    var isPast = daysBetween(state.demoDate, s.date) < 0;
+    var art = el('article', 'card' + (isPast ? ' past' : ''));
+    art.setAttribute('aria-labelledby', 'title-' + s.id);
+
+    var img = el('div', 'card-img v' + (idx % 3 + 1));
+    img.innerHTML = illustration(s.types);
+    img.appendChild(el('span', 'sample-tag', 'Sample Data'));
+    art.appendChild(img);
+
+    var body = el('div', 'card-body');
+    var h = el('h3', null, s.name);
+    h.id = 'title-' + s.id;
+    body.appendChild(h);
+
+    var w = warningFor(s, state.demoDate);
+    if (isPast) {
+      var pb = el('p', 'badge badge-past');
+      pb.innerHTML = ICON_PAST;
+      pb.appendChild(el('span', null, 'Past event'));
+      body.appendChild(pb);
+    } else if (w) {
+      var b = el('p', 'badge badge-' + w.level);
+      b.innerHTML = (w.level === 'red' ? ICON_RED : ICON_AMBER);
+      b.appendChild(el('span', null, 'Details still missing: session ' + dayText(w.days)));
+      body.appendChild(b);
+    }
+
+    var dl = el('dl', 'facts');
+    var types = TYPES.filter(function (t) { return s.types.indexOf(t) > -1; }).join(', ');
+    [['Date', formatDate(s.date)], ['Time', s.time], ['Where', s.location], ['Accepts', types]].forEach(function (pair) {
+      dl.appendChild(el('dt', null, pair[0]));
+      dl.appendChild(el('dd', null, pair[1]));
+    });
+    body.appendChild(dl);
+
+    var ratings = el('div', 'ratings');
+    var rn = el('div', 'rating');
+    rn.appendChild(el('span', 'rating-title', 'Noise'));
+    if (s.noise) {
+      var holder = el('span');
+      holder.innerHTML = pillHTML(s.noise);
+      rn.appendChild(holder);
+    } else {
+      rn.appendChild(el('span', 'missing', 'Details not yet supplied'));
+    }
+    ratings.appendChild(rn);
+
+    var rl = el('div', 'rating');
+    rl.appendChild(el('span', 'rating-title', 'Lighting'));
+    if (s.light) {
+      var lh = el('span');
+      lh.innerHTML = bulbsHTML(s.light);
+      rl.appendChild(lh);
+      rl.appendChild(el('span', 'light-label', LIGHT[s.light].label + ' (' + s.light + ' of 3 bulbs)'));
+    } else {
+      rl.appendChild(el('span', 'missing', 'Details not yet supplied'));
+    }
+    ratings.appendChild(rl);
+    body.appendChild(ratings);
+
+    art.appendChild(body);
+    return art;
+  }
+
+  function cmp(a, b) {
+    if (a.date !== b.date) { return a.date < b.date ? -1 : 1; }
+    if (a.time !== b.time) { return a.time < b.time ? -1 : 1; }
+    return a.name < b.name ? -1 : 1;
+  }
+
+  function render() {
+    $('reset-msg').textContent = '';
+    var demo = state.demoDate;
+    var f = getFilters();
+
+    var upcoming = state.sessions.filter(function (s) { return daysBetween(demo, s.date) >= 0; }).sort(cmp);
+    var allPast = state.sessions.filter(function (s) { return daysBetween(demo, s.date) < 0; }).sort(cmp);
+    var pastList = state.showPast ? allPast : [];
+    var shown = [], shownPast = [], hiddenUnknown = 0;
+    upcoming.forEach(function (s) {
+      var r = evaluate(s, f);
+      if (r === 'show') { shown.push(s); } else if (r === 'unknown') { hiddenUnknown++; }
+    });
+    pastList.forEach(function (s) {
+      var r = evaluate(s, f);
+      if (r === 'show') { shownPast.push(s); } else if (r === 'unknown') { hiddenUnknown++; }
+    });
+
+    var cards = $('cards');
+    cards.innerHTML = '';
+    shown.forEach(function (s, i) { cards.appendChild(buildCard(s, i)); });
+    if (shownPast.length) {
+      cards.appendChild(el('h3', 'cards-subhead', 'Past events'));
+      shownPast.forEach(function (s, i) { cards.appendChild(buildCard(s, shown.length + i)); });
+    }
+
+    var countText = 'Showing ' + shown.length + ' of ' + plural(upcoming.length, 'upcoming session');
+    if (state.showPast) { countText += ', plus ' + shownPast.length + ' of ' + plural(allPast.length, 'past event'); }
+    $('result-count').textContent = countText;
+
+    var note = $('filter-note');
+    if (hiddenUnknown > 0) {
+      note.textContent = plural(hiddenUnknown, 'session') + ' hidden because the noise or lighting details are missing, so we cannot tell if they fit your limits.';
+      note.hidden = false;
+    } else {
+      note.hidden = true;
+    }
+
+    var empty = $('empty');
+    var considered = upcoming.length + pastList.length;
+    if (shown.length + shownPast.length === 0) {
+      var msg;
+      if (considered === 0) {
+        msg = (!state.showPast && allPast.length > 0)
+          ? 'There are no upcoming sessions on this demo date. Tick Show past events to see earlier ones, or move the demo date earlier.'
+          : 'There are no sessions to show on this demo date. Try moving the demo date earlier.';
+      } else {
+        msg = 'No sessions match all of your filters. Try loosening one of them.';
+      }
+      $('empty-text').textContent = msg;
+      $('empty-clear').hidden = considered === 0;
+      empty.hidden = false;
+    } else {
+      empty.hidden = true;
+    }
+  }
+
+  /* ---------- Demo date ---------- */
+  function onDemoChange() {
+    var v = $('demo-date').value;
+    state.demoDate = parseISO(v) !== null ? v : todayISO();
+    updateDemoReadout();
+    $('v-date').min = state.demoDate;
+    render();
+  }
+  function updateDemoReadout() {
+    var real = todayISO();
+    $('demo-readout').textContent = (state.demoDate === real ? 'Using the real date: ' : 'Pretending today is: ') + formatDate(state.demoDate);
+  }
+
+  /* ---------- Views ---------- */
+  function setView(name) {
+    var performer = name === 'performer';
+    $('view-performer').hidden = !performer;
+    $('view-venue').hidden = performer;
+    $('btn-performer').setAttribute('aria-pressed', performer ? 'true' : 'false');
+    $('btn-venue').setAttribute('aria-pressed', performer ? 'false' : 'true');
+    $('thanks').hidden = true;
+    $('form-errors').hidden = true;
+  }
+
+  /* ---------- Venue form ---------- */
+  function onSubmit(e) {
+    e.preventDefault();
+    var name = $('v-name').value.trim();
+    var date = $('v-date').value;
+    var time = $('v-time').value;
+    var loc = $('v-location').value.trim();
+    var types = [].slice.call(document.querySelectorAll('#venue-form input[name="v-type"]:checked')).map(function (i) { return i.value; });
+    var noiseVal = document.querySelector('#venue-form input[name="v-noise"]:checked').value;
+    var lightVal = document.querySelector('#venue-form input[name="v-light"]:checked').value;
+
+    var errs = [];
+    if (!name) { errs.push('Add a session name.'); }
+    if (parseISO(date) === null) {
+      errs.push('Choose a date.');
+    } else if (daysBetween(state.demoDate, date) < 0) {
+      errs.push('Choose a date on or after the demo date (' + formatDate(state.demoDate) + ').');
+    }
+    if (!/^\d{2}:\d{2}$/.test(time)) { errs.push('Choose a time.'); }
+    if (!loc) { errs.push('Add a made-up location.'); }
+    if (!types.length) { errs.push('Tick at least one performance type.'); }
+
+    var box = $('form-errors');
+    if (errs.length) {
+      box.innerHTML = '';
+      box.appendChild(el('p', null, 'Please fix this before adding the session:'));
+      var ul = el('ul');
+      errs.forEach(function (m) { ul.appendChild(el('li', null, m)); });
+      box.appendChild(ul);
+      box.hidden = false;
+      box.focus();
+      return;
+    }
+    box.hidden = true;
+
+    state.sessions.push({
+      id: 'u' + Date.now(),
+      name: name, date: date, time: time, location: loc, types: types,
+      noise: NOISE[noiseVal] ? noiseVal : null,
+      light: lightVal ? +lightVal : null
+    });
+    saveSessions();
+    $('venue-form').reset();
+    render();
+
+    var t = $('thanks');
+    t.hidden = false;
+    t.classList.remove('shimmer');
+    void t.offsetWidth;
+    t.classList.add('shimmer');
+    t.focus();
+  }
+
+  /* ---------- Calm mode ---------- */
+  function setCalm(on, remember) {
+    document.body.classList.toggle('calm', on);
+    var b = $('calm-toggle');
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.textContent = 'Calm mode: ' + (on ? 'On' : 'Off');
+    if (remember) {
+      try { window.localStorage.setItem(CALM_KEY, on ? '1' : '0'); } catch (e) { /* ignore */ }
+    }
+  }
+
+  /* ---------- Start-up ---------- */
+  function init() {
+    var tile = "<svg xmlns='http://www.w3.org/2000/svg' width='22' height='120' viewBox='0 0 22 120'>" +
+      "<path transform='translate(4 6) scale(.7)' fill='#d4a017' d='" + STAR + "'/>" +
+      "<circle cx='16' cy='34' r='1.6' fill='#f0cf63'/>" +
+      "<path transform='translate(10 50) scale(.45)' fill='#f0cf63' d='" + STAR + "'/>" +
+      "<circle cx='6' cy='78' r='1.3' fill='#d4a017'/>" +
+      "<path transform='translate(5 92) scale(.55)' fill='#d4a017' d='" + STAR + "'/>" +
+      "<circle cx='17' cy='112' r='1.4' fill='#f0cf63'/></svg>";
+    var star = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='#d4a017' d='" + STAR + "'/></svg>";
+    var root = document.documentElement.style;
+    root.setProperty('--sparkle-tile', 'url("data:image/svg+xml,' + encodeURIComponent(tile) + '")');
+    root.setProperty('--star-icon', 'url("data:image/svg+xml,' + encodeURIComponent(star) + '")');
+
+    $('key-performer').innerHTML = keyHTML('h3');
+    $('key-venue').innerHTML = keyHTML('h4');
+
+    state.sessions = loadSessions();
+    state.demoDate = todayISO();
+    $('demo-date').value = state.demoDate;
+    $('v-date').min = state.demoDate;
+    updateDemoReadout();
+
+    var calm = false;
+    try { calm = window.localStorage.getItem(CALM_KEY) === '1'; } catch (e) { /* ignore */ }
+    setCalm(calm, false);
+
+    $('btn-performer').addEventListener('click', function () { setView('performer'); });
+    $('btn-venue').addEventListener('click', function () { setView('venue'); });
+    $('thanks-view').addEventListener('click', function () { setView('performer'); $('btn-performer').focus(); });
+    $('calm-toggle').addEventListener('click', function () { setCalm(!document.body.classList.contains('calm'), true); });
+
+    $('demo-date').addEventListener('input', onDemoChange);
+    $('demo-date').addEventListener('change', onDemoChange);
+    $('demo-today').addEventListener('click', function () { $('demo-date').value = todayISO(); onDemoChange(); });
+    $('show-past').addEventListener('change', function () { state.showPast = this.checked; render(); });
+
+    $('filters').addEventListener('change', render);
+    $('clear-filters').addEventListener('click', clearFilters);
+    $('empty-clear').addEventListener('click', clearFilters);
+
+    $('venue-form').addEventListener('submit', onSubmit);
+
+    $('reset-sample').addEventListener('click', function () {
+      state.sessions = clone(SAMPLE);
+      saveSessions();
+      render();
+      $('reset-msg').textContent = 'Sample Data restored: the original eight sessions are back.';
+    });
+
+    render();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
