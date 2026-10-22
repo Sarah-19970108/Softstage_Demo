@@ -211,6 +211,15 @@ input[type="text"], input[type="date"], input[type="time"] {
   border: 2px dashed #6f5a85; border-radius: 10px; background: #f6f0fa;
 }
 
+/* Quiet space symbol */
+.quiet-chip {
+  display: inline-flex; align-items: center; gap: 8px; padding: 2px 16px 2px 6px;
+  border-radius: 999px; border: 2px solid var(--purple); background: var(--lav);
+  font-weight: 700; font-size: 1rem; line-height: 1.5; color: var(--ink);
+}
+.quiet-chip svg { display: block; width: 36px; height: 36px; flex: 0 0 36px; }
+.card.past .quiet-chip { filter: grayscale(1); }
+
 /* Past events (greyed out) and the Missing details key */
 .cards-subhead { grid-column: 1 / -1; margin: 8px 0 0; }
 .card.past { background: #f1eef3; border-color: #bfb6c9; }
@@ -362,6 +371,13 @@ body.calm .thanks::after { display: none; }
           </div>
         </fieldset>
 
+        <fieldset>
+          <legend>Quiet space</legend>
+          <div class="choices">
+            <label class="choice"><input type="checkbox" name="quiet" value="1"><span>Only show sessions with a quiet space</span></label>
+          </div>
+        </fieldset>
+
         <button type="button" id="clear-filters" class="btn btn-secondary">Clear filters</button>
       </form>
 
@@ -381,7 +397,7 @@ body.calm .thanks::after { display: none; }
 
       <section class="panel" aria-labelledby="key-heading-v">
         <h3 id="key-heading-v">How to rate your session</h3>
-        <p>Please rate the loudest and brightest moments of the session, so performers can plan. Everyone uses the same keys, so ratings mean the same thing everywhere.</p>
+        <p>Please rate the loudest and brightest moments of the session, so performers can plan. Everyone uses the same keys, so ratings mean the same thing everywhere. If your venue has a quiet space, tick the Quiet space box on the form.</p>
         <div id="key-venue"></div>
       </section>
 
@@ -445,6 +461,14 @@ body.calm .thanks::after { display: none; }
           </div>
         </fieldset>
 
+        <fieldset aria-describedby="hint-vquiet">
+          <legend>Quiet space (optional)</legend>
+          <p class="hint" id="hint-vquiet">A quiet space is a calmer place where a performer can step away from the noise and lights.</p>
+          <div class="choices">
+            <label class="choice"><input type="checkbox" name="v-quiet" value="1"><span>This session has a quiet space available</span></label>
+          </div>
+        </fieldset>
+
         <button type="submit" class="btn">Add session</button>
       </form>
     </section>
@@ -483,14 +507,14 @@ body.calm .thanks::after { display: none; }
 
   /* ---------- Sample data (all invented) ---------- */
   var SAMPLE = [
-    { id: 's1', name: 'Quiet Corner Open Mic',     date: '2026-11-03', time: '19:00', location: 'The Birch Room, Dublin 8',            types: ['Singing', 'Spoken word'],          noise: 'low',      light: 1 },
-    { id: 's2', name: 'Spooky Stories Night',      date: '2026-10-31', time: '18:30', location: 'Lantern Arts Hall, Dublin 7',         types: ['Spoken word'],                     noise: 'moderate', light: 2 },
-    { id: 's3', name: 'Move Your Way Dance Jam',   date: '2026-11-11', time: '18:00', location: 'Cobalt Studio, Dublin 1',             types: ['Dance'],                           noise: null,       light: null },
-    { id: 's4', name: 'Soft Voices Singing Circle',date: '2026-11-19', time: '19:30', location: 'The Willow Loft, Dublin 6',           types: ['Singing'],                         noise: 'low',      light: 1 },
-    { id: 's5', name: 'Open Stage Social',         date: '2026-11-27', time: '20:00', location: 'Saltmarsh Hall, Dublin 3',            types: ['Singing', 'Dance', 'Spoken word'], noise: 'high',     light: 3 },
-    { id: 's6', name: 'Little Lights Showcase',    date: '2026-12-06', time: '17:00', location: 'Fernbrook Community Centre, Dublin 12', types: ['Dance', 'Singing'],              noise: null,       light: null },
-    { id: 's7', name: 'Winter Words Evening',      date: '2026-12-16', time: '19:00', location: 'The Old Mill Room, Dublin 2',         types: ['Spoken word'],                     noise: 'low',      light: 2 },
-    { id: 's8', name: 'Festive Open Mic',          date: '2026-12-22', time: '19:00', location: 'Maple Street Arts Space, Dublin 4',   types: ['Singing', 'Spoken word'],          noise: null,       light: null }
+    { id: 's1', name: 'Quiet Corner Open Mic',     date: '2026-11-03', time: '19:00', location: 'The Birch Room, Dublin 8',            types: ['Singing', 'Spoken word'],          noise: 'low',      light: 1, quiet: true },
+    { id: 's2', name: 'Spooky Stories Night',      date: '2026-10-31', time: '18:30', location: 'Lantern Arts Hall, Dublin 7',         types: ['Spoken word'],                     noise: 'moderate', light: 2, quiet: false },
+    { id: 's3', name: 'Move Your Way Dance Jam',   date: '2026-11-11', time: '18:00', location: 'Cobalt Studio, Dublin 1',             types: ['Dance'],                           noise: null,       light: null, quiet: true },
+    { id: 's4', name: 'Soft Voices Singing Circle',date: '2026-11-19', time: '19:30', location: 'The Willow Loft, Dublin 6',           types: ['Singing'],                         noise: 'low',      light: 1, quiet: false },
+    { id: 's5', name: 'Open Stage Social',         date: '2026-11-27', time: '20:00', location: 'Saltmarsh Hall, Dublin 3',            types: ['Singing', 'Dance', 'Spoken word'], noise: 'high',     light: 3, quiet: true },
+    { id: 's6', name: 'Little Lights Showcase',    date: '2026-12-06', time: '17:00', location: 'Fernbrook Community Centre, Dublin 12', types: ['Dance', 'Singing'],              noise: null,       light: null, quiet: false },
+    { id: 's7', name: 'Winter Words Evening',      date: '2026-12-16', time: '19:00', location: 'The Old Mill Room, Dublin 2',         types: ['Spoken word'],                     noise: 'low',      light: 2, quiet: true },
+    { id: 's8', name: 'Festive Open Mic',          date: '2026-12-22', time: '19:00', location: 'Maple Street Arts Space, Dublin 4',   types: ['Singing', 'Spoken word'],          noise: null,       light: null, quiet: false }
   ];
 
   /* ---------- Small helpers ---------- */
@@ -554,10 +578,18 @@ body.calm .thanks::after { display: none; }
       var types = (Array.isArray(s.types) ? s.types : []).filter(function (t) { return TYPES.indexOf(t) > -1; });
       if (!name || !loc || parseISO(s.date) === null || !/^\d{2}:\d{2}$/.test(String(s.time)) || !types.length) { return; }
       var id = String(s.id || ('x' + out.length)).replace(/[^a-zA-Z0-9_-]/g, '') || ('x' + out.length);
+      /* Sessions saved before Quiet space existed have no quiet value: the sample ones take theirs from the sample list. */
+      var quiet = false;
+      if (typeof s.quiet === 'boolean') {
+        quiet = s.quiet;
+      } else {
+        SAMPLE.forEach(function (base) { if (base.id === id) { quiet = base.quiet === true; } });
+      }
       out.push({
         id: id, name: name, date: s.date, time: s.time, location: loc, types: types,
         noise: NOISE[s.noise] ? s.noise : null,
-        light: (s.light === 1 || s.light === 2 || s.light === 3) ? s.light : null
+        light: (s.light === 1 || s.light === 2 || s.light === 3) ? s.light : null,
+        quiet: quiet
       });
     });
     return out.length ? out : null;
@@ -619,6 +651,20 @@ body.calm .thanks::after { display: none; }
   var ICON_AMBER = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3 2 21h20L12 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v5M12 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   var ICON_RED = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v6M12 16.5h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
+  /* The "shh" symbol: a round face with a finger held to the lips. */
+  function quietIcon() {
+    return '<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">' +
+      '<circle cx="24" cy="24" r="22" fill="#4a1d6e"/>' +
+      '<circle cx="16.5" cy="14.5" r="2.4" fill="#ffffff"/><circle cx="31.5" cy="14.5" r="2.4" fill="#ffffff"/>' +
+      '<g transform="translate(19.5 21.5) rotate(-32)">' +
+      '<path d="M-3.4 12L-3.4 3a2.4 2.4 0 0 1 4.8 0L1.4 8.2L7 8.6a3 3 0 0 1 3 3L10 17a4 4 0 0 1-4 4L-1 21a4 4 0 0 1-4-4Z" fill="#ffffff"/>' +
+      '<path d="M3.2 12.2v3.6M6.4 12.2v3.6" fill="none" stroke="#4a1d6e" stroke-width="1.2" stroke-linecap="round"/>' +
+      '</g></svg>';
+  }
+  function quietChipHTML(text) {
+    return '<span class="quiet-chip">' + quietIcon() + '<span>' + text + '</span></span>';
+  }
+
   var ICON_PAST = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   /* ---------- Keys (shown in both views) ---------- */
@@ -634,6 +680,11 @@ body.calm .thanks::after { display: none; }
       light += '<li>' + bulbsHTML(n) + '<span>' + plural(n, 'bulb') + ' lit. ' + LIGHT[n].label + '. ' + LIGHT[n].help + '</span></li>';
     });
     light += '</ul><p class="hint">Three bulbs can also mean flashing or changing light, for example disco lights.</p>';
+    var quiet = '<' + h + '>Quiet space key</' + h + '>' +
+      '<ul class="key-list">' +
+      '<li>' + quietChipHTML('Available') + '<span>If you see this symbol on a card, the venue has a quiet space: a calmer place to step away to.</span></li>' +
+      '<li><span class="key-none">No symbol</span><span>No quiet space has been listed for that session.</span></li>' +
+      '</ul>';
     var missing = '<' + h + '>Missing details key</' + h + '>' +
       '<p>If a session has no noise or lighting rating yet, a warning badge appears as its date gets closer.</p>' +
       '<ul class="key-list">' +
@@ -642,7 +693,7 @@ body.calm .thanks::after { display: none; }
       '<li><span class="badge badge-red">' + ICON_RED + '<span>Details still missing: session in 1 day</span></span><span>2 days or fewer away. The badge turns red.</span></li>' +
       '</ul>' +
       '<p class="hint">To see this happen, move the Demo date at the top of this page closer to a session\'s date. Sessions that have already happened are hidden unless you tick Show past events.</p>';
-    return '<div class="keys"><div>' + noise + '</div><div>' + light + '</div><div class="key-wide">' + missing + '</div></div>';
+    return '<div class="keys"><div>' + noise + '</div><div>' + light + '</div><div class="key-wide">' + quiet + '</div><div class="key-wide">' + missing + '</div></div>';
   }
 
   /* ---------- Filters ---------- */
@@ -650,11 +701,13 @@ body.calm .thanks::after { display: none; }
     var types = [].slice.call(document.querySelectorAll('#filters input[name="type"]:checked')).map(function (i) { return i.value; });
     var n = document.querySelector('#filters input[name="noise"]:checked');
     var l = document.querySelector('#filters input[name="light"]:checked');
-    return { types: types, maxNoise: n ? +n.value : 3, maxLight: l ? +l.value : 3 };
+    var q = !!document.querySelector('#filters input[name="quiet"]:checked');
+    return { types: types, maxNoise: n ? +n.value : 3, maxLight: l ? +l.value : 3, quiet: q };
   }
   /* returns 'show', 'no' (does not fit) or 'unknown' (cannot tell, details missing) */
   function evaluate(s, f) {
     if (f.types.length && !s.types.some(function (t) { return f.types.indexOf(t) > -1; })) { return 'no'; }
+    if (f.quiet && !s.quiet) { return 'no'; }
     var unknown = false;
     if (f.maxNoise < 3) {
       if (!s.noise) { unknown = true; } else if (NOISE[s.noise].rank > f.maxNoise) { return 'no'; }
@@ -666,6 +719,7 @@ body.calm .thanks::after { display: none; }
   }
   function clearFilters() {
     [].forEach.call(document.querySelectorAll('#filters input[name="type"]'), function (i) { i.checked = false; });
+    [].forEach.call(document.querySelectorAll('#filters input[name="quiet"]'), function (i) { i.checked = false; });
     document.querySelector('#filters input[name="noise"][value="3"]').checked = true;
     document.querySelector('#filters input[name="light"][value="3"]').checked = true;
     render();
@@ -731,6 +785,15 @@ body.calm .thanks::after { display: none; }
       rl.appendChild(el('span', 'missing', 'Details not yet supplied'));
     }
     ratings.appendChild(rl);
+
+    if (s.quiet) {
+      var rq = el('div', 'rating');
+      rq.appendChild(el('span', 'rating-title', 'Quiet space'));
+      var qh = el('span');
+      qh.innerHTML = quietChipHTML('Available');
+      rq.appendChild(qh);
+      ratings.appendChild(rq);
+    }
     body.appendChild(ratings);
 
     art.appendChild(body);
@@ -834,6 +897,7 @@ body.calm .thanks::after { display: none; }
     var types = [].slice.call(document.querySelectorAll('#venue-form input[name="v-type"]:checked')).map(function (i) { return i.value; });
     var noiseVal = document.querySelector('#venue-form input[name="v-noise"]:checked').value;
     var lightVal = document.querySelector('#venue-form input[name="v-light"]:checked').value;
+    var quietVal = !!document.querySelector('#venue-form input[name="v-quiet"]:checked');
 
     var errs = [];
     if (!name) { errs.push('Add a session name.'); }
@@ -863,7 +927,8 @@ body.calm .thanks::after { display: none; }
       id: 'u' + Date.now(),
       name: name, date: date, time: time, location: loc, types: types,
       noise: NOISE[noiseVal] ? noiseVal : null,
-      light: lightVal ? +lightVal : null
+      light: lightVal ? +lightVal : null,
+      quiet: quietVal
     });
     saveSessions();
     $('venue-form').reset();
