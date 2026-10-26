@@ -92,7 +92,9 @@ a { color: var(--purple-dark); }
 .mission { font-size: 1.15rem; margin: 0 0 0.3em; }
 .sub { font-size: 1rem; color: var(--ink-soft); margin: 0; }
 
-.top-controls { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin: 0 0 28px; }
+.top-controls { display: flex; flex-wrap: wrap; gap: 16px 28px; align-items: flex-start; margin: 0 0 28px; }
+.top-controls .control { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; flex: 1 1 16rem; min-width: 0; }
+.top-controls .control .hint { margin: 0; }
 
 .view-toggle { display: inline-flex; }
 .view-toggle button {
@@ -220,6 +222,16 @@ input[type="text"], input[type="date"], input[type="time"] {
 .quiet-chip svg { display: block; width: 36px; height: 36px; flex: 0 0 36px; }
 .card.past .quiet-chip { filter: grayscale(1); }
 
+/* Register interest (demo only): the thank-you message uses the page's own lavender, purple and dark purple. It does not move or flash. */
+.interest { margin: 0; }
+.interest .btn { width: 100%; }
+.interest-thanks {
+  margin: 0; padding: 12px 16px; background: var(--lav); border: 2px solid var(--purple);
+  border-radius: 12px; color: var(--purple-dark); font-weight: 600;
+}
+.interest-thanks:focus, #key-heading-p:focus, #key-heading-v:focus { outline: 3px solid var(--ink); outline-offset: 3px; }
+#key-heading-p, #key-heading-v { scroll-margin-top: 16px; }
+
 /* Past events (greyed out) and the Missing details key */
 .cards-subhead { grid-column: 1 / -1; margin: 8px 0 0; }
 .card.past { background: #f1eef3; border-color: #bfb6c9; }
@@ -306,11 +318,17 @@ body.calm .thanks::after { display: none; }
   </header>
 
   <div class="top-controls">
-    <div class="view-toggle" role="group" aria-label="Choose a view">
-      <button type="button" id="btn-performer" aria-pressed="true">Performer</button>
-      <button type="button" id="btn-venue" aria-pressed="false">Venue</button>
+    <div class="control">
+      <div class="view-toggle" role="group" aria-label="Choose a view" aria-describedby="view-help">
+        <button type="button" id="btn-performer" aria-pressed="true">Performer</button>
+        <button type="button" id="btn-venue" aria-pressed="false">Venue</button>
+      </div>
+      <p class="hint" id="view-help">Choose Performer to find a session, or Venue to add one.</p>
     </div>
-    <button type="button" id="calm-toggle" class="btn btn-secondary" aria-pressed="false">Calm mode: Off</button>
+    <div class="control">
+      <button type="button" id="calm-toggle" class="btn btn-secondary" aria-pressed="false" aria-describedby="dimmer-help">Dimmer switch: Off</button>
+      <p class="hint" id="dimmer-help">Hit the dimmer switch on this page to turn off the embellishments.</p>
+    </div>
   </div>
 
   <main id="main" tabindex="-1">
@@ -321,12 +339,12 @@ body.calm .thanks::after { display: none; }
       <p id="demo-readout"></p>
       <div class="demo-row">
         <div class="field">
-          <label class="lbl" for="demo-date">Demo date (a demo control, not a real booking)</label>
+          <label class="lbl" for="demo-date">Demo date: this control is only for the demo and does not book anything.</label>
           <input type="date" id="demo-date" aria-describedby="demo-help">
         </div>
         <button type="button" id="demo-today" class="btn btn-secondary">Back to today</button>
       </div>
-      <p class="demo-help" id="demo-help">Travel forward in time: see what happens when a session's details are still missing.</p>
+      <p class="demo-help" id="demo-help">Choose a later date to pretend it is today. Sessions that still have details missing will show a warning as the date gets closer.</p>
       <div class="show-past">
         <label class="choice"><input type="checkbox" id="show-past" aria-describedby="show-past-hint"><span>Show past events</span></label>
         <p class="hint" id="show-past-hint">Past events appear greyed out at the end of the list in Performer view, with no warnings.</p>
@@ -335,12 +353,9 @@ body.calm .thanks::after { display: none; }
 
     <!-- ================= PERFORMER VIEW ================= -->
     <section id="view-performer" aria-labelledby="performer-heading">
-      <section class="panel" aria-labelledby="key-heading-p">
-        <h2 id="key-heading-p">How to read the ratings</h2>
-        <div id="key-performer"></div>
-      </section>
 
       <h2 id="performer-heading" class="sparkle-heading">Find a session</h2>
+      <p class="hint">Not sure what a colour or symbol means? <a class="key-jump" href="#key-heading-p">See below for the key</a>.</p>
 
       <form id="filters" class="panel" aria-label="Filters" onsubmit="return false">
         <fieldset aria-describedby="hint-type">
@@ -354,20 +369,20 @@ body.calm .thanks::after { display: none; }
         </fieldset>
 
         <fieldset>
-          <legend>Noise: the loudest I can manage</legend>
+          <legend>Noise: choose the loudest level you can manage.</legend>
           <div class="choices">
-            <label class="choice"><input type="radio" name="noise" value="1"><span>Low only (green)</span></label>
-            <label class="choice"><input type="radio" name="noise" value="2"><span>Up to moderate (green and amber)</span></label>
-            <label class="choice"><input type="radio" name="noise" value="3" checked><span>Any noise level</span></label>
+            <label class="choice"><input type="radio" name="noise" value="1"><span>I can manage low noise only (green)</span></label>
+            <label class="choice"><input type="radio" name="noise" value="2"><span>I can manage up to moderate noise (green and amber)</span></label>
+            <label class="choice"><input type="radio" name="noise" value="3" checked><span>I can manage any noise level</span></label>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend>Lighting: the brightest I can manage</legend>
+          <legend>Lighting: tell us the brightest level you can manage.</legend>
           <div class="choices">
-            <label class="choice"><input type="radio" name="light" value="1"><span>1 bulb only (low light)</span></label>
-            <label class="choice"><input type="radio" name="light" value="2"><span>Up to 2 bulbs (low and moderate light)</span></label>
-            <label class="choice"><input type="radio" name="light" value="3" checked><span>Any lighting</span></label>
+            <label class="choice"><input type="radio" name="light" value="1"><span>I can manage 1 bulb only (low light)</span></label>
+            <label class="choice"><input type="radio" name="light" value="2"><span>I can manage up to 2 bulbs (low and moderate light)</span></label>
+            <label class="choice"><input type="radio" name="light" value="3" checked><span>I can manage any lighting</span></label>
           </div>
         </fieldset>
 
@@ -389,17 +404,18 @@ body.calm .thanks::after { display: none; }
         <p id="empty-text"></p>
         <button type="button" id="empty-clear" class="btn btn-secondary">Clear filters</button>
       </div>
+
+      <section class="panel" aria-labelledby="key-heading-p">
+        <h2 id="key-heading-p" tabindex="-1">How to read the ratings</h2>
+        <div id="key-performer"></div>
+      </section>
     </section>
 
     <!-- ================= VENUE VIEW ================= -->
     <section id="view-venue" aria-labelledby="venue-heading" hidden>
       <h2 id="venue-heading" class="sparkle-heading">Venue: add a session</h2>
+      <p class="hint">Not sure what a colour or symbol means? <a class="key-jump" href="#key-heading-v">See below for the key</a>.</p>
 
-      <section class="panel" aria-labelledby="key-heading-v">
-        <h3 id="key-heading-v">How to rate your session</h3>
-        <p>Please rate the loudest and brightest moments of the session, so performers can plan. Everyone uses the same keys, so ratings mean the same thing everywhere. If your venue has a quiet space, tick the Quiet space box on the form.</p>
-        <div id="key-venue"></div>
-      </section>
 
       <div id="thanks" class="thanks" role="status" tabindex="-1" hidden>
         <p class="thanks-emoji deco" aria-hidden="true">✨ 🙌 ✨</p>
@@ -445,9 +461,9 @@ body.calm .thanks::after { display: none; }
           <p class="hint" id="hint-vnoise">Leave it as Not yet known to see the missing-details warning at work.</p>
           <div class="choices">
             <label class="choice"><input type="radio" name="v-noise" value="" checked><span>Not yet known</span></label>
-            <label class="choice"><input type="radio" name="v-noise" value="low"><span>Low noise (green)</span></label>
-            <label class="choice"><input type="radio" name="v-noise" value="moderate"><span>Moderate noise (amber)</span></label>
-            <label class="choice"><input type="radio" name="v-noise" value="high"><span>Lots of noise (red)</span></label>
+            <label class="choice"><input type="radio" name="v-noise" value="low"><span>The noise is low (green)</span></label>
+            <label class="choice"><input type="radio" name="v-noise" value="moderate"><span>The noise is moderate (amber)</span></label>
+            <label class="choice"><input type="radio" name="v-noise" value="high"><span>The noise is loud (red)</span></label>
           </div>
         </fieldset>
 
@@ -455,9 +471,9 @@ body.calm .thanks::after { display: none; }
           <legend>Lighting rating (optional)</legend>
           <div class="choices">
             <label class="choice"><input type="radio" name="v-light" value="" checked><span>Not yet known</span></label>
-            <label class="choice"><input type="radio" name="v-light" value="1"><span>1 bulb: low light</span></label>
-            <label class="choice"><input type="radio" name="v-light" value="2"><span>2 bulbs: moderate light</span></label>
-            <label class="choice"><input type="radio" name="v-light" value="3"><span>3 bulbs: very bright, or flashing or changing light</span></label>
+            <label class="choice"><input type="radio" name="v-light" value="1"><span>The lighting is low (1 bulb)</span></label>
+            <label class="choice"><input type="radio" name="v-light" value="2"><span>The lighting is moderate (2 bulbs)</span></label>
+            <label class="choice"><input type="radio" name="v-light" value="3"><span>The lighting is very bright, or flashing or changing (3 bulbs)</span></label>
           </div>
         </fieldset>
 
@@ -471,6 +487,12 @@ body.calm .thanks::after { display: none; }
 
         <button type="submit" class="btn">Add session</button>
       </form>
+
+      <section class="panel" aria-labelledby="key-heading-v">
+        <h3 id="key-heading-v" tabindex="-1">How to rate your session</h3>
+        <p>Please rate the loudest and brightest moments of the session, so performers can plan. Everyone uses the same keys, so ratings mean the same thing everywhere. If your venue has a quiet space, tick the Quiet space box on the form.</p>
+        <div id="key-venue"></div>
+      </section>
     </section>
   </main>
 
@@ -489,20 +511,23 @@ body.calm .thanks::after { display: none; }
   /* ---------- Constants ---------- */
   var STORAGE_KEY = 'softstageDemo.sessions.v1';
   var CALM_KEY = 'softstageDemo.calm.v1';
+  var TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+  var NAME_MAX = 60;
+  var LOC_MAX = 80;
   var TYPES = ['Singing', 'Dance', 'Spoken word'];
   var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var WEEKDAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   var STAR = 'M10 0Q10.9 9.1 20 10Q10.9 10.9 10 20Q9.1 10.9 0 10Q9.1 9.1 10 0Z';
 
   var NOISE = {
-    low:      { label: 'Low noise',      cls: 'green', rank: 1, help: 'Quiet room. Easy to talk.' },
-    moderate: { label: 'Moderate noise', cls: 'amber', rank: 2, help: 'Some music or chatter.' },
-    high:     { label: 'Lots of noise',  cls: 'red',   rank: 3, help: 'Loud music or a busy crowd.' }
+    low:      { label: 'Low noise',      cls: 'green', rank: 1, help: 'a quiet room where it is easy to talk.' },
+    moderate: { label: 'Moderate noise', cls: 'amber', rank: 2, help: 'there is some music or chatter.' },
+    high:     { label: 'Lots of noise',  cls: 'red',   rank: 3, help: 'there is loud music or a busy crowd.' }
   };
   var LIGHT = {
-    1: { label: 'Low light',      help: 'Soft, steady lighting.' },
-    2: { label: 'Moderate light', help: 'Brighter, but steady lighting.' },
-    3: { label: 'Very bright or changing light', help: 'Very bright, or flashing or changing light. For example, disco lights.' }
+    1: { label: 'Low light',      help: 'The lighting is soft and steady.' },
+    2: { label: 'Moderate light', help: 'The lighting is brighter, but it stays steady.' },
+    3: { label: 'Very bright or changing light', help: 'The lighting may flash or change, like disco lights.' }
   };
 
   /* ---------- Sample data (all invented) ---------- */
@@ -564,19 +589,29 @@ body.calm .thanks::after { display: none; }
     return 'in ' + n + (n === 1 ? ' day' : ' days');
   }
   function plural(n, word) { return n + ' ' + word + (n === 1 ? '' : 's'); }
+  function lowerFirst(t) { return t.charAt(0).toLowerCase() + t.slice(1); }
 
   /* ---------- State and storage ---------- */
-  var state = { sessions: [], demoDate: todayISO(), showPast: false };
+  var state = { sessions: [], demoDate: todayISO(), showPast: false, interested: {} };
+
+  /* A new id that no session is using yet (letters and numbers only, so sanitize keeps it). */
+  function newId() {
+    var id;
+    do {
+      id = 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    } while (state.sessions.some(function (x) { return x.id === id; }));
+    return id;
+  }
 
   function sanitize(list) {
     if (!Array.isArray(list)) { return null; }
     var out = [];
     list.forEach(function (s) {
       if (!s || typeof s !== 'object') { return; }
-      var name = String(s.name || '').slice(0, 60).trim();
-      var loc = String(s.location || '').slice(0, 80).trim();
+      var name = String(s.name || '').slice(0, NAME_MAX).trim();
+      var loc = String(s.location || '').slice(0, LOC_MAX).trim();
       var types = (Array.isArray(s.types) ? s.types : []).filter(function (t) { return TYPES.indexOf(t) > -1; });
-      if (!name || !loc || parseISO(s.date) === null || !/^\d{2}:\d{2}$/.test(String(s.time)) || !types.length) { return; }
+      if (!name || !loc || parseISO(s.date) === null || !TIME_RE.test(String(s.time)) || !types.length) { return; }
       var id = String(s.id || ('x' + out.length)).replace(/[^a-zA-Z0-9_-]/g, '') || ('x' + out.length);
       /* Sessions saved before Quiet space existed have no quiet value: the sample ones take theirs from the sample list. */
       var quiet = false;
@@ -672,12 +707,12 @@ body.calm .thanks::after { display: none; }
     var h = tag || 'h4';
     var noise = '<' + h + '>Noise key</' + h + '><ul class="key-list">';
     ['low', 'moderate', 'high'].forEach(function (k) {
-      noise += '<li>' + pillHTML(k) + '<span>' + { low: 'Green', moderate: 'Amber', high: 'Red' }[k] + '. ' + NOISE[k].help + '</span></li>';
+      noise += '<li>' + pillHTML(k) + '<span>' + { low: 'Green', moderate: 'Amber', high: 'Red' }[k] + ': ' + NOISE[k].help + '</span></li>';
     });
     noise += '</ul>';
     var light = '<' + h + '>Lighting key</' + h + '><ul class="key-list">';
     [1, 2, 3].forEach(function (n) {
-      light += '<li>' + bulbsHTML(n) + '<span>' + plural(n, 'bulb') + ' lit. ' + LIGHT[n].label + '. ' + LIGHT[n].help + '</span></li>';
+      light += '<li>' + bulbsHTML(n) + '<span>' + plural(n, 'bulb') + ' lit: ' + lowerFirst(LIGHT[n].label) + '. ' + LIGHT[n].help + '</span></li>';
     });
     light += '</ul><p class="hint">Three bulbs can also mean flashing or changing light, for example disco lights.</p>';
     var quiet = '<' + h + '>Quiet space key</' + h + '>' +
@@ -688,9 +723,9 @@ body.calm .thanks::after { display: none; }
     var missing = '<' + h + '>Missing details key</' + h + '>' +
       '<p>If a session has no noise or lighting rating yet, a warning badge appears as its date gets closer.</p>' +
       '<ul class="key-list">' +
-      '<li><span class="key-none">No badge</span><span>6 or more days away. Nothing shows yet.</span></li>' +
-      '<li><span class="badge badge-amber">' + ICON_AMBER + '<span>Details still missing: session in 4 days</span></span><span>3 to 5 days away. The badge is amber.</span></li>' +
-      '<li><span class="badge badge-red">' + ICON_RED + '<span>Details still missing: session in 1 day</span></span><span>2 days or fewer away. The badge turns red.</span></li>' +
+      '<li><span class="key-none">No badge</span><span>While a session is 6 or more days away, no badge shows.</span></li>' +
+      '<li><span class="badge badge-amber">' + ICON_AMBER + '<span>Warning: the session is in 4 days and its details are still missing.</span></span><span>When a session is 3 to 5 days away, the badge is amber.</span></li>' +
+      '<li><span class="badge badge-red">' + ICON_RED + '<span>Warning: the session is in 1 day and its details are still missing.</span></span><span>When a session is 2 days or fewer away, the badge turns red.</span></li>' +
       '</ul>' +
       '<p class="hint">To see this happen, move the Demo date at the top of this page closer to a session\'s date. Sessions that have already happened are hidden unless you tick Show past events.</p>';
     return '<div class="keys"><div>' + noise + '</div><div>' + light + '</div><div class="key-wide">' + quiet + '</div><div class="key-wide">' + missing + '</div></div>';
@@ -745,12 +780,12 @@ body.calm .thanks::after { display: none; }
     if (isPast) {
       var pb = el('p', 'badge badge-past');
       pb.innerHTML = ICON_PAST;
-      pb.appendChild(el('span', null, 'Past event'));
+      pb.appendChild(el('span', null, 'This event has already happened.'));
       body.appendChild(pb);
     } else if (w) {
       var b = el('p', 'badge badge-' + w.level);
       b.innerHTML = (w.level === 'red' ? ICON_RED : ICON_AMBER);
-      b.appendChild(el('span', null, 'Details still missing: session ' + dayText(w.days)));
+      b.appendChild(el('span', null, 'Warning: the session is ' + dayText(w.days) + ' and its details are still missing.'));
       body.appendChild(b);
     }
 
@@ -770,7 +805,7 @@ body.calm .thanks::after { display: none; }
       holder.innerHTML = pillHTML(s.noise);
       rn.appendChild(holder);
     } else {
-      rn.appendChild(el('span', 'missing', 'Details not yet supplied'));
+      rn.appendChild(el('span', 'missing', 'The venue has not given this rating yet.'));
     }
     ratings.appendChild(rn);
 
@@ -780,9 +815,9 @@ body.calm .thanks::after { display: none; }
       var lh = el('span');
       lh.innerHTML = bulbsHTML(s.light);
       rl.appendChild(lh);
-      rl.appendChild(el('span', 'light-label', LIGHT[s.light].label + ' (' + s.light + ' of 3 bulbs)'));
+      rl.appendChild(el('span', 'light-label', 'This session has ' + lowerFirst(LIGHT[s.light].label) + ' (' + s.light + ' of 3 bulbs).'));
     } else {
-      rl.appendChild(el('span', 'missing', 'Details not yet supplied'));
+      rl.appendChild(el('span', 'missing', 'The venue has not given this rating yet.'));
     }
     ratings.appendChild(rl);
 
@@ -796,8 +831,36 @@ body.calm .thanks::after { display: none; }
     }
     body.appendChild(ratings);
 
+    if (!isPast) { body.appendChild(interestBlock(s)); }
+
     art.appendChild(body);
     return art;
+  }
+
+  /* ---------- Register interest (demo only: shows a thank-you message, nothing is sent and nothing is saved) ---------- */
+  function thanksNode(s) {
+    var m = el('p', 'interest-thanks', 'Thank you for your interest in ' + s.name + '. This is a demo, so nothing has been sent or saved.');
+    m.setAttribute('role', 'status');
+    m.tabIndex = -1;
+    return m;
+  }
+  function interestBlock(s) {
+    var wrap = el('div', 'interest');
+    if (state.interested[s.id]) {
+      wrap.appendChild(thanksNode(s));
+      return wrap;
+    }
+    var b = el('button', 'btn', 'Register interest');
+    b.type = 'button';
+    b.setAttribute('aria-label', 'Register interest in ' + s.name);
+    b.addEventListener('click', function () {
+      state.interested[s.id] = true;
+      var msg = thanksNode(s);
+      wrap.replaceChild(msg, b);
+      msg.focus();
+    });
+    wrap.appendChild(b);
+    return wrap;
   }
 
   function cmp(a, b) {
@@ -832,8 +895,17 @@ body.calm .thanks::after { display: none; }
       shownPast.forEach(function (s, i) { cards.appendChild(buildCard(s, shown.length + i)); });
     }
 
-    var countText = 'Showing ' + shown.length + ' of ' + plural(upcoming.length, 'upcoming session');
-    if (state.showPast) { countText += ', plus ' + shownPast.length + ' of ' + plural(allPast.length, 'past event'); }
+    var countText = shown.length + ' of the ' + plural(upcoming.length, 'upcoming session') +
+      (shown.length === 1 ? ' is' : ' are') + ' shown below';
+    if (state.showPast) {
+      if (allPast.length === 0) {
+        countText += ', and there are no past events';
+      } else {
+        countText += ', and so ' + (shownPast.length === 1 ? 'is ' : 'are ') +
+          shownPast.length + ' of the ' + plural(allPast.length, 'past event');
+      }
+    }
+    countText += '.';
     $('result-count').textContent = countText;
 
     var note = $('filter-note');
@@ -873,7 +945,7 @@ body.calm .thanks::after { display: none; }
   }
   function updateDemoReadout() {
     var real = todayISO();
-    $('demo-readout').textContent = (state.demoDate === real ? 'Using the real date: ' : 'Pretending today is: ') + formatDate(state.demoDate);
+    $('demo-readout').textContent = (state.demoDate === real ? 'You are seeing the demo on the real date, ' : 'You are seeing the demo as if today were ') + formatDate(state.demoDate) + '.';
   }
 
   /* ---------- Views ---------- */
@@ -890,13 +962,15 @@ body.calm .thanks::after { display: none; }
   /* ---------- Venue form ---------- */
   function onSubmit(e) {
     e.preventDefault();
-    var name = $('v-name').value.trim();
+    var name = $('v-name').value.slice(0, NAME_MAX).trim();
     var date = $('v-date').value;
     var time = $('v-time').value;
-    var loc = $('v-location').value.trim();
+    var loc = $('v-location').value.slice(0, LOC_MAX).trim();
     var types = [].slice.call(document.querySelectorAll('#venue-form input[name="v-type"]:checked')).map(function (i) { return i.value; });
-    var noiseVal = document.querySelector('#venue-form input[name="v-noise"]:checked').value;
-    var lightVal = document.querySelector('#venue-form input[name="v-light"]:checked').value;
+    var noiseEl = document.querySelector('#venue-form input[name="v-noise"]:checked');
+    var lightEl = document.querySelector('#venue-form input[name="v-light"]:checked');
+    var noiseVal = noiseEl ? noiseEl.value : '';
+    var lightVal = lightEl ? lightEl.value : '';
     var quietVal = !!document.querySelector('#venue-form input[name="v-quiet"]:checked');
 
     var errs = [];
@@ -906,7 +980,7 @@ body.calm .thanks::after { display: none; }
     } else if (daysBetween(state.demoDate, date) < 0) {
       errs.push('Choose a date on or after the demo date (' + formatDate(state.demoDate) + ').');
     }
-    if (!/^\d{2}:\d{2}$/.test(time)) { errs.push('Choose a time.'); }
+    if (!TIME_RE.test(time)) { errs.push('Choose a time.'); }
     if (!loc) { errs.push('Add a made-up location.'); }
     if (!types.length) { errs.push('Tick at least one performance type.'); }
 
@@ -924,7 +998,7 @@ body.calm .thanks::after { display: none; }
     box.hidden = true;
 
     state.sessions.push({
-      id: 'u' + Date.now(),
+      id: newId(),
       name: name, date: date, time: time, location: loc, types: types,
       noise: NOISE[noiseVal] ? noiseVal : null,
       light: lightVal ? +lightVal : null,
@@ -947,7 +1021,7 @@ body.calm .thanks::after { display: none; }
     document.body.classList.toggle('calm', on);
     var b = $('calm-toggle');
     b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    b.textContent = 'Calm mode: ' + (on ? 'On' : 'Off');
+    b.textContent = 'Dimmer switch: ' + (on ? 'On' : 'Off');
     if (remember) {
       try { window.localStorage.setItem(CALM_KEY, on ? '1' : '0'); } catch (e) { /* ignore */ }
     }
@@ -980,6 +1054,12 @@ body.calm .thanks::after { display: none; }
     try { calm = window.localStorage.getItem(CALM_KEY) === '1'; } catch (e) { /* ignore */ }
     setCalm(calm, false);
 
+    [].forEach.call(document.querySelectorAll('a.key-jump'), function (a) {
+      a.addEventListener('click', function () {
+        var t = document.getElementById(a.getAttribute('href').slice(1));
+        if (t) { setTimeout(function () { t.focus(); }, 0); }
+      });
+    });
     $('btn-performer').addEventListener('click', function () { setView('performer'); });
     $('btn-venue').addEventListener('click', function () { setView('venue'); });
     $('thanks-view').addEventListener('click', function () { setView('performer'); $('btn-performer').focus(); });
@@ -998,9 +1078,10 @@ body.calm .thanks::after { display: none; }
 
     $('reset-sample').addEventListener('click', function () {
       state.sessions = clone(SAMPLE);
+      state.interested = {};
       saveSessions();
       render();
-      $('reset-msg').textContent = 'Sample Data restored: the original eight sessions are back.';
+      $('reset-msg').textContent = 'Done. Sample Data has been restored with the original eight sessions.';
     });
 
     render();
